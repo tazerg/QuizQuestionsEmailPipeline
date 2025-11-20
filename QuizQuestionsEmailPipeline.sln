@@ -4,6 +4,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuizQuestions.Main", "QuizQ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuizQuestions.Model", "QuizQuestions.Model\QuizQuestions.Model.csproj", "{B4E79DFB-98A3-4160-8520-DBF068E87912}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuizQuestions.SpreadsheetExport", "QuizQuestions.SpreadsheetExport\QuizQuestions.SpreadsheetExport.csproj", "{5ECEE6C5-B368-4F7B-9A1C-D9DFCC4949FE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuizQuestions.Json", "QuizQuestions.Json\QuizQuestions.Json.csproj", "{ACBFA249-C5BF-479B-9600-722D8AB947B6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +22,13 @@ Global
 		{B4E79DFB-98A3-4160-8520-DBF068E87912}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4E79DFB-98A3-4160-8520-DBF068E87912}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B4E79DFB-98A3-4160-8520-DBF068E87912}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5ECEE6C5-B368-4F7B-9A1C-D9DFCC4949FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5ECEE6C5-B368-4F7B-9A1C-D9DFCC4949FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5ECEE6C5-B368-4F7B-9A1C-D9DFCC4949FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5ECEE6C5-B368-4F7B-9A1C-D9DFCC4949FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ACBFA249-C5BF-479B-9600-722D8AB947B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACBFA249-C5BF-479B-9600-722D8AB947B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACBFA249-C5BF-479B-9600-722D8AB947B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACBFA249-C5BF-479B-9600-722D8AB947B6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
