@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuizQuestions.SpreadsheetEx
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuizQuestions.Json", "QuizQuestions.Json\QuizQuestions.Json.csproj", "{ACBFA249-C5BF-479B-9600-722D8AB947B6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuizQuestions.OpenAiProcessor", "QuizQuestions.OpenAiProcessor\QuizQuestions.OpenAiProcessor.csproj", "{0265C72A-F3FC-4DF5-8A6C-2F3EC1261B33}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{ACBFA249-C5BF-479B-9600-722D8AB947B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ACBFA249-C5BF-479B-9600-722D8AB947B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ACBFA249-C5BF-479B-9600-722D8AB947B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0265C72A-F3FC-4DF5-8A6C-2F3EC1261B33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0265C72A-F3FC-4DF5-8A6C-2F3EC1261B33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0265C72A-F3FC-4DF5-8A6C-2F3EC1261B33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0265C72A-F3FC-4DF5-8A6C-2F3EC1261B33}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
