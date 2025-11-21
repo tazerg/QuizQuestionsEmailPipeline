@@ -29,7 +29,7 @@ namespace QuizQuestions.Main
                     if (universe == null)
                         continue;
                     
-                    if (!string.Equals(universe, requiredUniverse))
+                    if (!CorrectUniverse(universe, requiredUniverse))
                         continue;
 
                     var result = await _openAiProcessor.ProcessEmailAsync(universe, email.Subject, email.BodyText);
@@ -60,6 +60,15 @@ namespace QuizQuestions.Main
 
             // Или любые другие правила
             return null;
+        }
+
+        private bool CorrectUniverse(string universe, string requiredUniverse)
+        {
+            if (string.Equals(universe, "Harry Potter") && string.Equals(requiredUniverse, "hp")) return true;
+            if (string.Equals(universe, "Lord of the Rings") && string.Equals(requiredUniverse, "lotr")) return true;
+            if (string.Equals(universe, "Witcher") && string.Equals(requiredUniverse, "wq")) return true;
+
+            return false;
         }
     }
 }

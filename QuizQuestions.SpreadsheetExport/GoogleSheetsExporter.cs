@@ -20,7 +20,8 @@ namespace QuizQuestions.SpreadsheetExport
             using (var stream = new FileStream(keyFilePath, FileMode.Open, FileAccess.Read))
             {
                 credential = CredentialFactory
-                    .FromStream<GoogleCredential>(stream)
+                    .FromStream<ServiceAccountCredential>(stream)
+                    .ToGoogleCredential()
                     .CreateScoped(SheetsService.Scope.Spreadsheets);
             }
 
