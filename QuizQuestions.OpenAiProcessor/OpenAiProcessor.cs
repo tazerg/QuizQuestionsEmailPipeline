@@ -26,7 +26,7 @@ namespace QuizQuestions.OpenAiProcessor
 
             var payload = new
             {
-                model = "gpt-5.1",
+                model = "gpt-4o-mini",
                 response_format = new { type = "json_object" },
                 messages = new[]
                 {
