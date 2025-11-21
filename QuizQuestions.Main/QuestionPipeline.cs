@@ -1,10 +1,13 @@
 using QuizQuestions.EmailClient;
 using QuizQuestions.Json;
+using QuizQuestions.Logger;
 
 namespace QuizQuestions.Main
 {
     public class QuestionPipeline
     {
+        private const string LOG_TAG = nameof(QuestionPipeline);
+        
         private readonly IEmailClient _emailClient;
         private readonly OpenAiProcessor.OpenAiProcessor _openAiProcessor;
         private readonly JsonQuestionStorage _storage;
@@ -18,6 +21,7 @@ namespace QuizQuestions.Main
 
         public async Task ProcessAllInboxAsync(string requiredUniverse)
         {
+            Log.Debug(LOG_TAG, "Collect emails");
             var emails = await _emailClient.GetUnprocessedEmailsAsync();
             var processedEmails = new List<EmailMessage>();
             
@@ -32,10 +36,16 @@ namespace QuizQuestions.Main
                     if (!CorrectUniverse(universe, requiredUniverse))
                         continue;
 
+                    Log.Debug(LOG_TAG, "Send OpenAi prompt");
                     var result = await _openAiProcessor.ProcessEmailAsync(universe, email.Subject, email.BodyText);
+                    Log.Debug(LOG_TAG, $"OpenAi status result {result.Status}");
                     if (result.Status == "accepted")
                     {
                         await _storage.AppendDataAsync(result);
+                    }
+                    else
+                    {
+                        Log.Debug(LOG_TAG, $"Reason: {result.RejectReason}. Details {result.Details}");
                     }
 
                     processedEmails.Add(email);
@@ -46,6 +56,7 @@ namespace QuizQuestions.Main
                 }
             }
             
+            Log.Debug(LOG_TAG, "Mark processed emails");
             await _emailClient.MarkAsProcessedAsync(processedEmails);
         }
 
