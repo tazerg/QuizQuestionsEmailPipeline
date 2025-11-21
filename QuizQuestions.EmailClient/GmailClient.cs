@@ -40,6 +40,13 @@ namespace QuizQuestions.EmailClient
                         break;
                     
                     var message = await inbox.GetMessageAsync(uid);
+                    
+                    
+                    
+                    if (!string.Equals(message.Subject, "Harry Potter Quiz"))
+                        continue;
+                    
+                    
                     var textBody = message.TextBody ?? message.HtmlBody ?? string.Empty;
                     result.Add(new EmailMessage
                     {
