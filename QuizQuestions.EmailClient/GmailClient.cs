@@ -30,8 +30,15 @@ namespace QuizQuestions.EmailClient
                 await inbox.OpenAsync(FolderAccess.ReadOnly);
                 var uids = await inbox.SearchAsync(SearchQuery.NotSeen);
                 var result = new List<EmailMessage>();
+
+                const int MAX_MAILS = 1;
+                var progress = 0;
+                
                 foreach (var uid in uids)
                 {
+                    if (progress == MAX_MAILS)
+                        break;
+                    
                     var message = await inbox.GetMessageAsync(uid);
                     var textBody = message.TextBody ?? message.HtmlBody ?? string.Empty;
                     result.Add(new EmailMessage
@@ -40,6 +47,8 @@ namespace QuizQuestions.EmailClient
                         Subject = message.Subject,
                         BodyText = textBody
                     });
+                    
+                    progress++;
                 }
                 
                 await client.DisconnectAsync(true);

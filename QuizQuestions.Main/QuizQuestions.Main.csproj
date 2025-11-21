@@ -7,4 +7,12 @@
         <Nullable>disable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\QuizQuestions.EmailClient\QuizQuestions.EmailClient.csproj" />
+      <ProjectReference Include="..\QuizQuestions.Json\QuizQuestions.Json.csproj" />
+      <ProjectReference Include="..\QuizQuestions.Model\QuizQuestions.Model.csproj" />
+      <ProjectReference Include="..\QuizQuestions.OpenAiProcessor\QuizQuestions.OpenAiProcessor.csproj" />
+      <ProjectReference Include="..\QuizQuestions.SpreadsheetExport\QuizQuestions.SpreadsheetExport.csproj" />
+    </ItemGroup>
+
 </Project>
