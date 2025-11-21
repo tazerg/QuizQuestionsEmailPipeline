@@ -6,9 +6,4 @@
         <Nullable>disable</Nullable>
     </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\QuizQuestions.Logger\QuizQuestions.Logger.csproj" />
-      <ProjectReference Include="..\QuizQuestions.Model\QuizQuestions.Model.csproj" />
-    </ItemGroup>
-
 </Project>

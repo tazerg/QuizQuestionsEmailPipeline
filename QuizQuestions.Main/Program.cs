@@ -69,12 +69,12 @@ namespace QuizQuestions.Main
             }
         }
         
-        private static async Task RunExportToSheetsAsync(ExportPipeline exportPipeline)
+        private static async Task RunExportToSheetsAsync(ExportPipeline pipeline)
         {
             Console.WriteLine("=== Export ===");
             try
             {
-                await exportPipeline.ExportReviewedToSheetsAsync();
+                await pipeline.ExportReviewedToSheetsAsync();
                 Console.WriteLine("Done.");
             }
             catch (Exception ex)

@@ -1,11 +1,14 @@
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
+using QuizQuestions.Logger;
 
 namespace QuizQuestions.EmailClient
 {
     public class GmailClient : IEmailClient
     {
+        private const string LOG_TAG = nameof(GmailClient);
+        
         private const string HOST = "imap.gmail.com";
         private const int PORT = 993;
         private const bool USE_SSL = true;
@@ -21,18 +24,27 @@ namespace QuizQuestions.EmailClient
 
         public async Task<IReadOnlyList<EmailMessage>> GetUnprocessedEmailsAsync()
         {
+            Log.Debug(LOG_TAG, "Collect messages");
             using (var client = new ImapClient())
             {
+                Log.Debug(LOG_TAG, "Start gmail client");
+                
                 await client.ConnectAsync(HOST, PORT, USE_SSL);
                 await client.AuthenticateAsync(_username, _password);
+                
+                Log.Debug(LOG_TAG, "Authenticated");
                 
                 var inbox = client.Inbox;
                 await inbox.OpenAsync(FolderAccess.ReadOnly);
                 var uids = await inbox.SearchAsync(SearchQuery.NotSeen);
                 var result = new List<EmailMessage>();
+                
+                Log.Debug(LOG_TAG, $"Collected {uids.Count} messages");
 
                 const int MAX_MAILS = 1;
                 var progress = 0;
+                
+                Log.Debug(LOG_TAG, "Start reading");
                 
                 foreach (var uid in uids)
                 {
@@ -58,26 +70,38 @@ namespace QuizQuestions.EmailClient
                     progress++;
                 }
                 
+                Log.Debug(LOG_TAG, $"Read {result.Count} messages");
+                
                 await client.DisconnectAsync(true);
+                
+                Log.Debug(LOG_TAG, "Disconnected");
                 return result;
             }
         }
 
         public async Task MarkAsProcessedAsync(IReadOnlyList<EmailMessage> messages)
         {
+            Log.Debug(LOG_TAG, "Mark messages");
             using (var client = new ImapClient())
             {
+                Log.Debug(LOG_TAG, "Start gmail client");
+
                 await client.ConnectAsync(HOST, PORT, USE_SSL);
                 await client.AuthenticateAsync(_username, _password);
+                
+                Log.Debug(LOG_TAG, "Authenticated");
 
                 var inbox = client.Inbox;
                 await inbox.OpenAsync(FolderAccess.ReadWrite);
+                Log.Debug(LOG_TAG, "Start mark");
                 foreach (var message in messages)
                 {
                     await inbox.AddFlagsAsync(message.UniqueId, MessageFlags.Seen, true);
                 }
                 
+                Log.Debug(LOG_TAG, $"Mark {messages.Count} messages");
                 await client.DisconnectAsync(true);
+                Log.Debug(LOG_TAG, "Disconnected");
             }
         }
     }

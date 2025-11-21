@@ -1,12 +1,15 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using QuizQuestions.Logger;
 using QuizQuestions.Model;
 
 namespace QuizQuestions.OpenAiProcessor
 {
     public class OpenAiProcessor
     {
+        private const string LOG_TAG = nameof(OpenAiProcessor);
+        
         private readonly HttpClient _httpClient;
         
         public OpenAiProcessor(string apiKey)
@@ -21,6 +24,8 @@ namespace QuizQuestions.OpenAiProcessor
 
         public async Task<ProcessedQuestion> ProcessEmailAsync(string universe, string subject, string body)
         {
+            Log.Debug(LOG_TAG, $"Start process message: {body}");
+            
             var systemPrompt = PromptTemplate.TEMPLATE.Replace("<UNIVERSE>", universe);
             var userContent = $"Subject: {subject}\nBody:\n{body}";
 
@@ -38,24 +43,78 @@ namespace QuizQuestions.OpenAiProcessor
             var json = JsonSerializer.Serialize(payload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
+            Log.Debug(LOG_TAG, "Send request");
             var response = await _httpClient.PostAsync("chat/completions", content);
             response.EnsureSuccessStatusCode();
 
+            Log.Debug(LOG_TAG, "Wait response");
             var responseString = await response.Content.ReadAsStringAsync();
-            var chatResponse = JsonSerializer.Deserialize<OpenAiChatResponse>(responseString);
+            
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+            var chatResponse = JsonSerializer.Deserialize<OpenAiChatResponse>(responseString, jsonOptions);
+            
+            Log.Debug(LOG_TAG, $"Response received. Usage info. " +
+                               $"Prompt tokens: {chatResponse.Usages.PromptTokens}; " +
+                               $"Completion tokens: {chatResponse.Usages.CompletionTokens}; " +
+                               $"Total tokens: {chatResponse.Usages.TotalTokens}");
+            
+            var rateLimitInfo = ParseRateLimitInfo(response);
+            Log.Debug(LOG_TAG, $"{rateLimitInfo}");
+            
             var resultJson = chatResponse?.Choices?[0]?.Message?.Content;
 
             if (string.IsNullOrWhiteSpace(resultJson))
                 throw new Exception("Empty model response");
 
-            var processed = JsonSerializer.Deserialize<ProcessedQuestion>(
-                resultJson,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
+            Log.Debug(LOG_TAG, "Deserialize result");
+            var processed = JsonSerializer.Deserialize<ProcessedQuestion>(resultJson, jsonOptions);
             return processed;
+        }
+        
+        private OpenAiRateLimitInfo ParseRateLimitInfo(HttpResponseMessage response)
+        {
+            var headers = response.Headers;
+
+            int? TryInt(string name)
+            {
+                if (headers.TryGetValues(name, out var values))
+                {
+                    var s = values.FirstOrDefault();
+                    if (int.TryParse(s, out var v)) return v;
+                }
+                return null;
+            }
+
+            string TryString(string name)
+            {
+                if (headers.TryGetValues(name, out var values))
+                    return values.FirstOrDefault();
+                return null;
+            }
+
+            int? processingMs = null;
+            var processingMsStr = TryString("openai-processing-ms");
+            if (int.TryParse(processingMsStr, out var ms))
+                processingMs = ms;
+
+            return new OpenAiRateLimitInfo
+            {
+                LimitRequests = TryInt("x-ratelimit-limit-requests"),
+                RemainingRequests = TryInt("x-ratelimit-remaining-requests"),
+                ResetRequestsRaw = TryString("x-ratelimit-reset-requests"),
+
+                LimitTokens = TryInt("x-ratelimit-limit-tokens"),
+                RemainingTokens = TryInt("x-ratelimit-remaining-tokens"),
+                ResetTokensRaw = TryString("x-ratelimit-reset-tokens"),
+
+                ProcessingMs = processingMs,
+                RequestId = TryString("X-Request-ID")
+            };
         }
     }
 }
