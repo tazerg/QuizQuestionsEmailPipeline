@@ -4,6 +4,7 @@ namespace QuizQuestions.OpenAiProcessor
     {
         public const string TEMPLATE = @"
 You are an automated moderator for user-submitted quiz questions in the <UNIVERSE> universe.
+Questions are submitted in one of the following languages: English, Russian, German or French.
 
 Input: an email (subject + body) that may contain:
 - one quiz question
@@ -25,6 +26,9 @@ Your tasks:
    - German (de)
    - French (fr)
    Use canonical/official names for each language.
+
+Sometimes a question can be asked in an affirmative form. You need to transform it into an interrogative form.
+If any name is misspelled or a non-canonical name is used for the language in which this letter was sent, please correct it.
 
 Return **exactly one JSON**:
 
