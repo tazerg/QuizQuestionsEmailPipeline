@@ -22,21 +22,24 @@ namespace QuizQuestions.OpenAiProcessor
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         }
 
-        public async Task<ProcessedQuestion> ProcessEmailAsync(string universe, string subject, string body)
+        public async Task<List<ProcessedQuestion>> ProcessEmailAsync(string universe, List<EmailForModeration> emails)
         {
-            Log.Debug(LOG_TAG, $"Start process message: {body}");
+            if (emails == null || emails.Count == 0)
+                throw new ArgumentException("emails list is empty", nameof(emails));
+            
+            Log.Debug(LOG_TAG, $"Start batch process. Emails count: {emails.Count}");
             
             var systemPrompt = PromptTemplate.TEMPLATE.Replace("<UNIVERSE>", universe);
-            var userContent = $"Subject: {subject}\nBody:\n{body}";
+            var emailsJson = JsonSerializer.Serialize(emails);
 
             var payload = new
             {
                 model = "gpt-4o-mini",
-                response_format = new { type = "json_object" },
+                //response_format = new { type = "json_object" },
                 messages = new[]
                 {
                     new { role = "system", content = systemPrompt },
-                    new { role = "user", content = userContent }
+                    new { role = "user", content = emailsJson }
                 }
             };
 
@@ -72,8 +75,8 @@ namespace QuizQuestions.OpenAiProcessor
                 throw new Exception("Empty model response");
 
             Log.Debug(LOG_TAG, "Deserialize result");
-            var processed = JsonSerializer.Deserialize<ProcessedQuestion>(resultJson, jsonOptions);
-            return processed;
+            var processedList = JsonSerializer.Deserialize<List<ProcessedQuestion>>(resultJson, jsonOptions);
+            return processedList;
         }
         
         private OpenAiRateLimitInfo ParseRateLimitInfo(HttpResponseMessage response)

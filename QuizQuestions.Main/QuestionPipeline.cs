@@ -1,12 +1,15 @@
 using QuizQuestions.EmailClient;
 using QuizQuestions.Json;
 using QuizQuestions.Logger;
+using QuizQuestions.Model;
 
 namespace QuizQuestions.Main
 {
     public class QuestionPipeline
     {
         private const string LOG_TAG = nameof(QuestionPipeline);
+
+        private const int MAILS_COUNT = 20;
         
         private readonly IEmailClient _emailClient;
         private readonly OpenAiProcessor.OpenAiProcessor _openAiProcessor;
@@ -22,22 +25,28 @@ namespace QuizQuestions.Main
         public async Task ProcessAllInboxAsync(string requiredUniverse)
         {
             Log.Debug(LOG_TAG, "Collect emails");
-            var emails = await _emailClient.GetUnprocessedEmailsAsync();
-            var processedEmails = new List<EmailMessage>();
-            
+            var subject = DetachSubjectFromUniverse(requiredUniverse);
+            var emails = await _emailClient.GetUnprocessedEmailsAsync(subject, MAILS_COUNT);
+            var moderationEmails = new List<EmailForModeration>(emails.Count);
             foreach (var email in emails)
             {
-                try
+                moderationEmails.Add(new EmailForModeration
                 {
-                    var universe = DetectUniverseFromSubject(email.Subject);
-                    if (universe == null)
-                        continue;
-                    
-                    if (!CorrectUniverse(universe, requiredUniverse))
-                        continue;
+                    Subject = email.Subject,
+                    Body = email.BodyText
+                });
+            }
+            
+            try
+            {
+                var universe = DetectUniverseFromSubject(requiredUniverse);
+                if (universe == null)
+                    return;
 
-                    Log.Debug(LOG_TAG, "Send OpenAi prompt");
-                    var result = await _openAiProcessor.ProcessEmailAsync(universe, email.Subject, email.BodyText);
+                Log.Debug(LOG_TAG, "Send OpenAi prompt");
+                var resultList = await _openAiProcessor.ProcessEmailAsync(universe, moderationEmails);
+                foreach (var result in resultList)
+                {
                     Log.Debug(LOG_TAG, $"OpenAi status result {result.Status}");
                     if (result.Status == "accepted")
                     {
@@ -47,39 +56,33 @@ namespace QuizQuestions.Main
                     {
                         Log.Debug(LOG_TAG, $"Reason: {result.RejectReason}. Details {result.Details}");
                     }
-
-                    processedEmails.Add(email);
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error processing email '{email.Subject}': {ex.Message}");
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing email: {ex.Message}\n{ex.StackTrace}");
             }
             
             Log.Debug(LOG_TAG, "Mark processed emails");
-            await _emailClient.MarkAsProcessedAsync(processedEmails);
+            await _emailClient.MarkAsProcessedAsync(emails);
         }
 
-        private string DetectUniverseFromSubject(string subject)
+        private string DetectUniverseFromSubject(string requiredUniverse)
         {
-            if (subject == null) 
-                return null;
+            if (string.Equals(requiredUniverse, "hp")) return "Harry Potter";
+            if (string.Equals(requiredUniverse, "lotr")) return "Lord of the Rings";
+            if (string.Equals(requiredUniverse, "wq")) return "Witcher";
 
-            if (subject.Contains("Harry Potter Quiz")) return "Harry Potter";
-            if (subject.Contains("Middle Earth Quiz")) return "Lord of the Rings";
-            if (subject.Contains("Witcher Quiz")) return "Witcher";
-
-            // Или любые другие правила
             return null;
         }
 
-        private bool CorrectUniverse(string universe, string requiredUniverse)
+        private string DetachSubjectFromUniverse(string requiredUniverse)
         {
-            if (string.Equals(universe, "Harry Potter") && string.Equals(requiredUniverse, "hp")) return true;
-            if (string.Equals(universe, "Lord of the Rings") && string.Equals(requiredUniverse, "lotr")) return true;
-            if (string.Equals(universe, "Witcher") && string.Equals(requiredUniverse, "wq")) return true;
+            if (string.Equals(requiredUniverse, "hp")) return "Harry Potter Quiz";
+            if (string.Equals(requiredUniverse, "lotr")) return "Middle Earth Quiz";
+            if (string.Equals(requiredUniverse, "wq")) return "Witcher Quiz";
 
-            return false;
+            return string.Empty;
         }
     }
 }

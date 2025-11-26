@@ -22,7 +22,7 @@ namespace QuizQuestions.EmailClient
             _password = password;
         }
 
-        public async Task<IReadOnlyList<EmailMessage>> GetUnprocessedEmailsAsync()
+        public async Task<IReadOnlyList<EmailMessage>> GetUnprocessedEmailsAsync(string subject, int mailsCount)
         {
             Log.Debug(LOG_TAG, "Collect messages");
             using (var client = new ImapClient())
@@ -40,24 +40,18 @@ namespace QuizQuestions.EmailClient
                 var result = new List<EmailMessage>();
                 
                 Log.Debug(LOG_TAG, $"Collected {uids.Count} messages");
-
-                const int MAX_MAILS = 1;
-                var progress = 0;
-                
                 Log.Debug(LOG_TAG, "Start reading");
                 
+                var progress = 0;
                 foreach (var uid in uids)
                 {
-                    if (progress == MAX_MAILS)
+                    if (progress == mailsCount)
                         break;
                     
                     var message = await inbox.GetMessageAsync(uid);
                     
-                    
-                    
-                    if (!string.Equals(message.Subject, "Harry Potter Quiz"))
+                    if (!string.Equals(message.Subject, subject))
                         continue;
-                    
                     
                     var textBody = message.TextBody ?? message.HtmlBody ?? string.Empty;
                     result.Add(new EmailMessage
